@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pong by Flychech</title>
+
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        background-color: cadetblue;
+        box-sizing: border-box;
+        margin: 0;
+      }
+      #gameCanvas {
+        border: 2px solid white;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pong by Flychech</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+      const fps = 60;
+      const friction = 0.98;
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Pelota
+      let ballRadius = 4;
+      let ballX = canvas.width / 2;
+      let ballY = canvas.height / 2;
+      let ballSpeedX = 4;
+      let ballSpeedY = -4;
+
+      // Paletas
+      const PADDLE_SPEED = 16;
+      const paddleWidth = 10;
+      const paddleHeight = 100;
+
+      let paddle1X = 40;
+      let paddle1Y = canvas.height / 2 - paddleHeight / 2;
+
+      let paddle2X = canvas.width - 40 - paddleWidth;
+      let paddle2Y = canvas.height / 2 - paddleHeight / 2;
+
+      let upArrowPressed = false;
+      let downArrowPressed = false;
+      let wKeyPressed = false;
+      let sKeyPressed = false;
+
+      function cleanCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function drawField() {
+        // dibujando la línea central
+        ctx.strokeStyle = "#403e3e";
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+      }
+
+      function drawBall() {
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        // ctx.arc(x, y, radio, startAngle, endAngle)
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+      }
+
+      function drawPaddles() {
+        ctx.fillStyle = "#fff";
+        // paleta izquierda
+        ctx.fillRect(paddle1X, paddle1Y, paddleWidth, paddleHeight);
+        // paleta derecha
+        ctx.fillRect(paddle2X, paddle2Y, paddleWidth, paddleHeight);
+      }
+
+      function ballCollitions() {
+        // rebote techo y suelo
+        if (
+          ballY + ballSpeedY < ballRadius ||
+          ballY + ballSpeedY > canvas.height - ballRadius
+        ) {
+          ballSpeedY = -ballSpeedY;
+        }
+
+        //rebote pared derecha e izquierda (solo para practica, despues lo voy a quitar)
+        if (
+          ballX + ballSpeedX > canvas.width - ballRadius ||
+          ballX + ballSpeedX < ballRadius
+        ) {
+          // ballSpeedX = -ballSpeedX;
+          // gameover
+          console.log("game over");
+          document.location.reload();
+        }
+
+        const ballNextPositionX = ballX + ballSpeedX;
+        const ballNextPositionY = ballY + ballSpeedY;
+
+        // rebote con paleta derecha
+        if (
+          ballNextPositionX > paddle2X - ballRadius &&
+          ballX + ballRadius < paddle2X &&
+          ballNextPositionY > paddle2Y &&
+          ballNextPositionY < paddle2Y + paddleHeight
+        ) {
+          ballSpeedX = -ballSpeedX;
+        }
+
+        // rebote con paleta izquierda
+        if (
+          ballNextPositionX < paddle1X + ballRadius + paddleWidth &&
+          ballX + ballRadius > paddle1X &&
+          ballNextPositionY > paddle1Y &&
+          ballNextPositionY < paddle1Y + paddleHeight
+        ) {
+          ballSpeedX = -ballSpeedX;
+        }
+      }
+
+      function paddlesMovement() {
+        if (upArrowPressed) {
+          paddle2Y -= PADDLE_SPEED;
+        }
+
+        if (downArrowPressed) {
+          paddle2Y += PADDLE_SPEED;
+        }
+
+        if (wKeyPressed) {
+          paddle1Y -= PADDLE_SPEED;
+        }
+
+        if (sKeyPressed) {
+          paddle1Y += PADDLE_SPEED;
+        }
+      }
+
+      function initEvents() {
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+
+        function handleKeyDown(event) {
+          console.log(event.key);
+          if (event.key === "ArrowUp") {
+            upArrowPressed = true;
+          }
+
+          if (event.key === "ArrowDown") {
+            downArrowPressed = true;
+          }
+
+          if (event.key === "w") {
+            wKeyPressed = true;
+          }
+
+          if (event.key === "s") {
+            sKeyPressed = true;
+          }
+        }
+
+        function handleKeyUp(event) {
+          if (event.key === "ArrowUp") {
+            upArrowPressed = false;
+          }
+
+          if (event.key === "ArrowDown") {
+            downArrowPressed = false;
+          }
+
+          if (event.key === "w") {
+            wKeyPressed = false;
+          }
+
+          if (event.key === "s") {
+            sKeyPressed = false;
+          }
+        }
+      }
+
+      function draw() {
+        cleanCanvas();
+        drawField();
+        drawBall();
+        drawPaddles();
+        ballCollitions();
+        paddlesMovement();
+
+        setTimeout(() => {
+          window.requestAnimationFrame(draw);
+        }, 1000 / fps);
+        // window.requestAnimationFrame(draw);
+      }
+
+      draw();
+      initEvents();
+    </script>
+  </body>
+</html>

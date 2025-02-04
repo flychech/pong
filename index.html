@@ -16,22 +16,37 @@
         background-color: cadetblue;
         box-sizing: border-box;
         margin: 0;
+        font-family: Arial, sans-serif;
       }
       #gameCanvas {
         border: 2px solid white;
         background-color: black;
       }
+      .score {
+        display: flex;
+        width: 800px;
+        justify-content: space-between;
+        font-size: 24px;
+      }
     </style>
   </head>
   <body>
     <h1>Pong by Flychech</h1>
+    <div id="score" class="score">
+      <div>Left: 0</div>
+      <div>Right: 0</div>
+    </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <script>
       const fps = 60;
       const friction = 0.98;
       const canvas = document.getElementById("gameCanvas");
+      const score = document.getElementById("score");
       const ctx = canvas.getContext("2d");
+      let playerLeftScore = 0;
+      let playerRightScore = 0;
+      let currentScore = 0;
 
       // Pelota
       let ballRadius = 4;
@@ -97,17 +112,6 @@
           ballSpeedY = -ballSpeedY;
         }
 
-        //rebote pared derecha e izquierda (solo para practica, despues lo voy a quitar)
-        if (
-          ballX + ballSpeedX > canvas.width - ballRadius ||
-          ballX + ballSpeedX < ballRadius
-        ) {
-          // ballSpeedX = -ballSpeedX;
-          // gameover
-          console.log("game over");
-          document.location.reload();
-        }
-
         const ballNextPositionX = ballX + ballSpeedX;
         const ballNextPositionY = ballY + ballSpeedY;
 
@@ -130,22 +134,39 @@
         ) {
           ballSpeedX = -ballSpeedX;
         }
+
+        // puntos jugador izquierda
+        if (ballX + ballSpeedX > canvas.width - ballRadius) {
+          playerLeftScore += 1;
+          ballX = canvas.width / 2;
+          ballY = canvas.height / 2;
+          // document.location.reload();
+        }
+
+        // puntos jugador derecha
+        if (ballX + ballSpeedX < ballRadius) {
+          playerRightScore += 1;
+          ballX = canvas.width / 2;
+          ballY = canvas.height / 2;
+        }
+
+        score.innerHTML = `<div class="score"><div>Left: ${playerLeftScore}</div> <div>Right: ${playerRightScore}</div></div>`;
       }
 
       function paddlesMovement() {
-        if (upArrowPressed) {
+        if (upArrowPressed && paddle2Y > 0) {
           paddle2Y -= PADDLE_SPEED;
         }
 
-        if (downArrowPressed) {
+        if (downArrowPressed && paddle2Y < canvas.height - paddleHeight) {
           paddle2Y += PADDLE_SPEED;
         }
 
-        if (wKeyPressed) {
+        if (wKeyPressed && paddle1Y > 0) {
           paddle1Y -= PADDLE_SPEED;
         }
 
-        if (sKeyPressed) {
+        if (sKeyPressed && paddle1Y < canvas.height - paddleHeight) {
           paddle1Y += PADDLE_SPEED;
         }
       }
@@ -155,7 +176,6 @@
         document.addEventListener("keyup", handleKeyUp);
 
         function handleKeyDown(event) {
-          console.log(event.key);
           if (event.key === "ArrowUp") {
             upArrowPressed = true;
           }
